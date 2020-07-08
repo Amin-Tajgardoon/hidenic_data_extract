@@ -913,10 +913,23 @@ if __name__ == '__main__':
         
         # TODO: skip for now, load from file instead
         X = pd.read_sql_query(query, con)
-        # X = pd.read_pickle(os.path.join(outPath, "X_to_load.pkl"))
+        # print "loading lab_vitals from file ..."
+        # X = pd.read_pickle(os.path.join(outPath, "X.pkl"))
+        # print "Shape of X : ", X.shape
 
         # print "saving X only for debuging ... "
         # X.to_pickle(os.path.join(outPath, "X.pkl"))
+
+        ## too many lab codes causes memory error later, use 100 lab codes
+        print "reducing lab codes to 50 ..."
+        loinc_mask = X.itemid.str.contains("-")
+        loinc_codes = X.itemid[loinc_mask].value_counts()[0:50].index.to_list()
+        vital_mask = ~loinc_mask
+        vitals = X.itemid[vital_mask].unique().tolist()
+        itemids = vitals + loinc_codes
+        X = X[X.itemid.isin(itemids)]
+        print "Shape of X : ", X.shape
+
 
         # TODO: do not have the d_items table in HIDENIC, skip for now, set I to None
         I = None
